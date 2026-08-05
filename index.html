@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lost Explorer - Light the Ancient Lantern</title>
+    <meta name="description" content="Help the lost explorer light the ancient lantern using electronic circuits to find the hidden forest treasure in this interactive physics puzzle game.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesque:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background Forest Scene -->
+        <div id="forest-background" class="dark-forest">
+            <div class="sky-elements">
+                <div class="moon"></div>
+                <div class="stars"></div>
+            </div>
+            <div class="forest-layers">
+                <div class="layer trees-back"></div>
+                <div class="layer trees-mid"></div>
+                <div class="layer trees-front"></div>
+            </div>
+            <div id="fireflies-container"></div>
+            <div class="river"></div>
+        </div>
+
+        <!-- Main Game Interface Overlay -->
+        <div id="ui-overlay">
+            <!-- Header bar with Stats, Score, Timer -->
+            <header id="game-header">
+                <div class="header-left">
+                    <span class="game-year">YEAR 2042</span>
+                    <h1 id="game-title">🌲 The Lost Explorer</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-box" id="level-display">
+                        <span class="stat-label">LEVEL</span>
+                        <span class="stat-value" id="current-level-num">1</span>
+                    </div>
+                    <div class="stat-box" id="score-display">
+                        <span class="stat-label">SCORE</span>
+                        <span class="stat-value" id="score-val">100</span>
+                    </div>
+                    <div class="stat-box timer-warning" id="timer-display">
+                        <span class="stat-label">TIME REMAINING</span>
+                        <span class="stat-value" id="timer-val">05:00</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Active Level Objective Banner -->
+            <div id="objective-banner">
+                <span class="objective-badge">MISSION OBJECTIVE</span>
+                <span id="objective-text">Build a closed loop to light the lantern! Connect the Battery to the Bulb.</span>
+            </div>
+
+            <!-- Central Game Area: Circuit Builder / Maze Explorer -->
+            <main id="main-arena">
+                <!-- Circuit Board Section -->
+                <div id="board-container">
+                    <div id="breadboard">
+                        <!-- Neon Grid Grid Lines for breadboard feel -->
+                        <div class="breadboard-grid"></div>
+
+                        <!-- Central Lantern/Bulb (Fixed Component) -->
+                        <div class="component fixed-component" id="comp-lantern" data-component-type="bulb">
+                            <div class="lantern-light-glow"></div>
+                            <div class="component-icon">
+                                <div id="lantern-glow-bulb" class="bulb-svg-container">
+                                    <svg viewBox="0 0 100 120" width="80" height="100">
+                                        <!-- Lantern Frame -->
+                                        <path d="M25,20 L75,20 L80,30 L80,90 L20,90 L20,30 Z" fill="rgba(30, 41, 59, 0.8)" stroke="#475569" stroke-width="3"/>
+                                        <rect x="35" y="10" width="30" height="10" rx="3" fill="#475569"/>
+                                        <!-- Filament and bulb glass -->
+                                        <circle cx="50" cy="55" r="22" fill="rgba(255, 255, 255, 0.15)" stroke="#64748b" stroke-width="2" class="bulb-glass"/>
+                                        <path d="M42,70 L46,55 L54,55 L58,70" fill="none" stroke="#94a3b8" stroke-width="2" class="bulb-filament-support"/>
+                                        <path d="M46,55 Q50,45 54,55" fill="none" stroke="#ef4444" stroke-width="2" id="bulb-filament" class="filament-cold"/>
+                                        <!-- Burn sparks elements -->
+                                        <path id="burn-mark" d="M38,45 Q44,48 50,42 Q56,48 62,45" fill="none" stroke="#222" stroke-width="4" class="hidden-element"/>
+                                        <!-- Bottom base -->
+                                        <rect x="40" y="75" width="20" height="15" fill="#334155" rx="1"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="component-label">ANCIENT LANTERN</div>
+                            <div class="terminals-row">
+                                <div class="terminal-node" id="term-bulb-a" data-comp-id="lantern" data-terminal="a" title="Lantern Terminal A"></div>
+                                <div class="terminal-node" id="term-bulb-b" data-comp-id="lantern" data-terminal="b" title="Lantern Terminal B"></div>
+                            </div>
+                            <span class="status-badge" id="lantern-status">OFF</span>
+                        </div>
+
+                        <!-- Battery Component (Fixed) -->
+                        <div class="component fixed-component" id="comp-battery" data-component-type="battery">
+                            <div class="component-icon">
+                                <svg viewBox="0 0 100 80" width="80" height="64">
+                                    <rect x="20" y="20" width="60" height="40" rx="6" fill="#0f172a" stroke="#334155" stroke-width="3"/>
+                                    <rect x="15" y="32" width="5" height="16" rx="2" fill="#ef4444"/> <!-- Positive cap -->
+                                    <rect x="80" y="32" width="5" height="16" rx="2" fill="#3b82f6"/> <!-- Negative cap -->
+                                    <text x="32" y="46" fill="#ef4444" font-weight="bold" font-size="16">+</text>
+                                    <text x="62" y="46" fill="#3b82f6" font-weight="bold" font-size="16">-</text>
+                                    <rect x="42" y="28" width="16" height="24" fill="#e2e8f0" rx="2"/>
+                                    <text x="46" y="45" fill="#0f172a" font-size="11" font-weight="800">9V</text>
+                                </svg>
+                            </div>
+                            <div class="component-label">BATTERY</div>
+                            <div class="terminals-row">
+                                <div class="terminal-node positive-term" id="term-battery-pos" data-comp-id="battery" data-terminal="pos" title="Battery Positive (+)"></div>
+                                <div class="terminal-node negative-term" id="term-battery-neg" data-comp-id="battery" data-terminal="neg" title="Battery Negative (-)"></div>
+                            </div>
+                        </div>
+
+                        <!-- Drop Slots for Inventory Components -->
+                        <div class="slots-container">
+                            <div class="component-slot" id="slot-1" data-slot-index="1">
+                                <div class="slot-placeholder-text">DROP COMPONENT HERE</div>
+                                <!-- Dropped component will render inside here -->
+                            </div>
+                            <div class="component-slot" id="slot-2" data-slot-index="2">
+                                <div class="slot-placeholder-text">DROP COMPONENT HERE</div>
+                            </div>
+                        </div>
+
+                        <!-- SVG Wire Layer covering the entire breadboard -->
+                        <svg id="wire-svg-overlay"></svg>
+                    </div>
+
+                    <!-- Layout instructions -->
+                    <div id="board-instructions">
+                        <p>💡 <strong>How to wire:</strong> Click on a terminal node <span class="node-demo"></span>, drag to another node, and release. Double-click a wire to remove it.</p>
+                        <div class="board-actions">
+                            <button class="btn btn-secondary" id="btn-clear-circuit">🧹 Clear Wires</button>
+                            <button class="btn btn-secondary" id="btn-reset-level">🔄 Reset Level</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treasure Hunt Overlay (Shown in level 5) -->
+                <div id="treasure-maze-overlay" class="hidden-element">
+                    <div class="maze-header">
+                        <h2>🧭 Forest Navigation</h2>
+                        <p>The fog has cleared! Navigate through the trees to reach the ancient cave containing the treasure.</p>
+                    </div>
+                    <div class="maze-arena-wrapper">
+                        <canvas id="maze-canvas" width="600" height="350"></canvas>
+                        <!-- Mobile/Touch Navigation D-Pad -->
+                        <div id="dpad-controller">
+                            <button class="dpad-btn" id="dpad-up" title="Move Up">▲</button>
+                            <div class="dpad-row">
+                                <button class="dpad-btn" id="dpad-left" title="Move Left">◀</button>
+                                <div class="dpad-spacer"></div>
+                                <button class="dpad-btn" id="dpad-right" title="Move Right">▶</button>
+                            </div>
+                            <button class="dpad-btn" id="dpad-down" title="Move Down">▼</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Inventory Drawer -->
+                <aside id="inventory-panel">
+                    <h3 class="panel-title">🎒 Explorer Bag</h3>
+                    <p class="panel-subtitle font-sm">Drag items into the breadboard slots below to use them in the circuit.</p>
+                    
+                    <div id="inventory-items">
+                        <!-- Interactive draggable items -->
+                        <div class="inv-item draggable" draggable="true" data-type="resistor" id="inv-resistor">
+                            <span class="inv-icon">📏</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Resistor</span>
+                                <span class="inv-desc">Protects elements from excess current.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="capacitor" id="inv-capacitor">
+                            <span class="inv-icon">⚡</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Capacitor</span>
+                                <span class="inv-desc">Stores charge, blocks steady DC.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="inductor" id="inv-inductor">
+                            <span class="inv-icon">🧲</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Inductor</span>
+                                <span class="inv-desc">Resists change in current.</span>
+                            </div>
+                        </div>
+
+                        <!-- Useless items for educational challenge -->
+                        <div class="inv-item draggable" draggable="true" data-type="stone" id="inv-stone">
+                            <span class="inv-icon">❌</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Dry Stone</span>
+                                <span class="inv-desc">Found near the cave. Non-conductive.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="leaf" id="inv-leaf">
+                            <span class="inv-icon">🍃</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Wet Leaf</span>
+                                <span class="inv-desc">Fallen from forest oak. Extremely high resistance.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="stick" id="inv-stick">
+                            <span class="inv-icon">🪵</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Dry Stick</span>
+                                <span class="inv-desc">Perfect insulator. Will not conduct electrons.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="bottle" id="inv-bottle">
+                            <span class="inv-icon">🧃</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Empty Bottle</span>
+                                <span class="inv-desc">Plastic soda bottle left by previous tourists.</span>
+                            </div>
+                        </div>
+
+                        <div class="inv-item draggable" draggable="true" data-type="compass" id="inv-compass">
+                            <span class="inv-icon">🧭</span>
+                            <div class="inv-details">
+                                <span class="inv-name">Metal Compass</span>
+                                <span class="inv-desc">Useful for direction, but not in this circuit!</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </main>
+        </div>
+
+        <!-- Popups & Modals -->
+        
+        <!-- Welcome/Intro Overlay -->
+        <div id="intro-modal" class="overlay-modal">
+            <div class="modal-content glass-panel">
+                <span class="modal-decor">🌲</span>
+                <span class="modal-sub">YEAR 2042</span>
+                <h2>The Lost Explorer</h2>
+                <div class="story-text">
+                    <p>You are searching for an ancient treasure hidden deep inside a mysterious forest.</p>
+                    <p>After hours of trekking... <strong>you are lost.</strong></p>
+                    <p>As pitch-black night falls, you stumble upon an old cave and discover an ancient, dusty treasure map.</p>
+                    <p class="highlight-text">But there is a catch: The map is blank, and will only reveal itself if you light the cave's ancient electronic lantern.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-start-game">⚡ Start Adventure</button>
+            </div>
+        </div>
+
+        <!-- Failure Banner / Warning popup -->
+        <div id="circuit-status-alert" class="hidden-element">
+            <div class="alert-content">
+                <span class="alert-icon" id="alert-icon-svg">💥</span>
+                <div class="alert-text">
+                    <h4 id="alert-title">BULB BURNT</h4>
+                    <p id="alert-message">Too much current! The resistor protects the bulb.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Completed Modal -->
+        <div id="level-complete-modal" class="overlay-modal hidden-element">
+            <div class="modal-content glass-panel">
+                <span class="success-crown">🏆</span>
+                <h3>Level Completed!</h3>
+                <h4 id="success-level-name">Closed Circuit Mastery</h4>
+                <div id="level-explanation-text" class="explanation-box">
+                    <!-- Dynamic physics explanation based on level -->
+                </div>
+                <button class="btn btn-primary" id="btn-next-level">Proceed to Level <span id="next-level-num">2</span></button>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="game-over-modal" class="overlay-modal hidden-element">
+            <div class="modal-content glass-panel">
+                <span class="fail-icon">💀</span>
+                <h3>Time Has Run Out</h3>
+                <p>The darkness consumes the forest. The battery has fully drained, and your map remains blank.</p>
+                <button class="btn btn-primary" id="btn-restart-game">🔄 Try Again</button>
+            </div>
+        </div>
+
+        <!-- Final Treasure Chest / Victory Modal -->
+        <div id="treasure-modal" class="overlay-modal hidden-element">
+            <div class="modal-content glass-panel victory-theme">
+                <div class="chest-animation-container">
+                    <div id="treasure-chest-graphic">
+                        <!-- Open Chest Neon SVG -->
+                        <svg viewBox="0 0 100 80" width="120" height="96">
+                            <path d="M10,40 L90,40 L85,75 L15,75 Z" fill="#1e293b" stroke="#38bdf8" stroke-width="3"/>
+                            <!-- Lid open wide -->
+                            <path d="M10,40 L90,40 L95,10 L5,10 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="3" id="chest-lid-open"/>
+                            <!-- Glowing circuit board inside chest -->
+                            <rect x="25" y="32" width="50" height="25" rx="3" fill="#065f46" stroke="#34d399" stroke-width="2" class="glowing-board"/>
+                            <circle cx="35" cy="45" r="3" fill="#fbbf24"/>
+                            <circle cx="50" cy="45" r="3" fill="#fbbf24"/>
+                            <circle cx="65" cy="45" r="3" fill="#fbbf24"/>
+                            <line x1="35" y1="45" x2="50" y2="45" stroke="#34d399" stroke-width="2"/>
+                            <line x1="50" y1="45" x2="65" y2="45" stroke="#34d399" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3>Congratulations Explorer!</h3>
+                <h4 class="gold-text">THE POWER OF ELECTRONICS</h4>
+                <div class="victory-message">
+                    <p class="quote">"The real treasure is knowledge."</p>
+                    <p>Every smartphone, robot, satellite, and computer starts with a simple circuit like the one you just built.</p>
+                    <p>You have unlocked the basic components of modern technology:</p>
+                </div>
+                
+                <!-- Revealed components list -->
+                <div class="unlocked-components-list">
+                    <div class="component-card">
+                        <span class="card-icon">📏</span>
+                        <div class="card-title">Resistor</div>
+                        <div class="card-desc">Limits current flow</div>
+                    </div>
+                    <div class="component-card">
+                        <span class="card-icon">⚡</span>
+                        <div class="card-title">Capacitor</div>
+                        <div class="card-desc">Stores charge</div>
+                    </div>
+                    <div class="component-card">
+                        <span class="card-icon">🧲</span>
+                        <div class="card-title">Inductor</div>
+                        <div class="card-desc">Smoothes current surges</div>
+                    </div>
+                    <div class="component-card">
+                        <span class="card-icon">🎛️</span>
+                        <div class="card-title">Transistor</div>
+                        <div class="card-desc">Acts as an electronic switch</div>
+                    </div>
+                    <div class="component-card">
+                        <span class="card-icon">🧠</span>
+                        <div class="card-title">IC Chip</div>
+                        <div class="card-desc">Combines millions of components</div>
+                    </div>
+                </div>
+
+                <div class="victory-footer">
+                    <p class="final-score-announce">Your Score: <span id="final-score-val">100</span> Points</p>
+                    <button class="btn btn-primary" id="btn-replay">🎮 Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script loading -->
+    <script src="game.js"></script>
+</body>
+</html>
