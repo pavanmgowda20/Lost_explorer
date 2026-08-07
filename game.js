@@ -299,6 +299,21 @@ function playSound(type) {
                 noise.stop(now + 0.3);
                 break;
             }
+            case 'siren': {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(900, now + 0.15);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            }
         }
     } catch (e) {
         console.error("Audio Synthesis error: ", e);
@@ -1624,19 +1639,29 @@ function triggerMorsePress() {
         // Freeze inputs early to prevent double triggers
         gameState.gameEnded = true;
         
-        // Start full-screen flashing animation (4 blinks)
-        const flash = document.getElementById('screen-flash');
-        if (flash) {
-            flash.classList.add('screen-flash-active');
-        }
-        
-        // Delay the helicopter arrival until flash ends (1.5 seconds)
+        // Delay the SOS blink and siren sequence by 500ms to let the player release the button
         setTimeout(() => {
-            if (flash) {
-                flash.classList.remove('screen-flash-active');
+            // Play 4 alarm sirens corresponding to the 4 flashes
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    playSound('siren');
+                }, i * 350);
             }
-            triggerRescueAnimation();
-        }, 1500);
+            
+            // Start full-screen flashing animation (4 blinks)
+            const flash = document.getElementById('screen-flash');
+            if (flash) {
+                flash.classList.add('screen-flash-active');
+            }
+            
+            // Delay the helicopter arrival until flash ends (1.5 seconds)
+            setTimeout(() => {
+                if (flash) {
+                    flash.classList.remove('screen-flash-active');
+                }
+                triggerRescueAnimation();
+            }, 1500);
+        }, 500);
     }
 }
 
