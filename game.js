@@ -1795,10 +1795,54 @@ function triggerRescueAnimation() {
 }
 
 // --- TEACHER CONTROL SYNCHRONIZATION ---
-const adminChannel = new BroadcastChannel('lost-explorer-sync');
+// Parse classroom sync code from URL parameters (?class=XXX) or default to 'lost-explorer-default'
+const urlParams = new URLSearchParams(window.location.search);
+const classCode = urlParams.get('class') || 'lost-explorer-default';
 
+// 1. Local Same-Computer Communication
+const adminChannel = new BroadcastChannel('lost-explorer-sync');
 adminChannel.onmessage = (event) => {
-    const msg = event.data;
+    handleIncomingCommand(event.data);
+};
+
+// 2. Internet-Wide Classroom Sync Relay (via ntfy.sh SSE stream)
+try {
+    const eventSourceUrl = `https://ntfy.sh/${encodeURIComponent(classCode)}/sse`;
+    const classroomRelay = new EventSource(eventSourceUrl);
+    
+    classroomRelay.onmessage = (event) => {
+        try {
+            const rawPayload = JSON.parse(event.data);
+            if (rawPayload && rawPayload.message) {
+                const command = JSON.parse(rawPayload.message);
+                handleIncomingCommand(command);
+            }
+        } catch (e) {
+            // Ignore non-JSON notifications
+        }
+    };
+    
+    classroomRelay.onerror = () => {
+        console.warn("Cloud sync connection temporarily interrupted. Retrying...");
+    };
+} catch (e) {
+    console.error("Failed to initialize Cloud Sync EventSource: ", e);
+}
+
+// 3. Storage Syncer for same-machine tabs
+window.addEventListener('storage', (e) => {
+    if (e.key === 'unlockedLevel') {
+        evaluateLevelUnlock(parseInt(e.newValue) || 1);
+    }
+    if (e.key === 'teacherBroadcast') {
+        showTeacherBroadcast(e.newValue);
+    }
+});
+
+// Centralized command dispatcher
+function handleIncomingCommand(msg) {
+    if (!msg || !msg.type) return;
+    
     if (msg.type === 'unlock') {
         localStorage.setItem('unlockedLevel', msg.level);
         evaluateLevelUnlock(msg.level);
@@ -1809,16 +1853,7 @@ adminChannel.onmessage = (event) => {
         localStorage.removeItem('teacherBroadcast');
         location.reload();
     }
-};
-
-window.addEventListener('storage', (e) => {
-    if (e.key === 'unlockedLevel') {
-        evaluateLevelUnlock(parseInt(e.newValue) || 1);
-    }
-    if (e.key === 'teacherBroadcast') {
-        showTeacherBroadcast(e.newValue);
-    }
-});
+}
 
 function evaluateLevelUnlock(unlockedLvl) {
     const currentLvl = gameState.currentLevel;

@@ -426,12 +426,22 @@
                     <div class="status-widget">
                         <div class="status-row">
                             <span>Teacher Sync Mode:</span>
-                            <span class="status-val" style="color:var(--neon-green)">ONLINE (Local Broadcast)</span>
+                            <span class="status-val" style="color:var(--neon-green)">ONLINE (Local & Cloud)</span>
                         </div>
                         <div class="status-row">
                             <span>Highest Unlocked Level:</span>
                             <span class="status-val" id="highest-unlocked-badge">Level 1</span>
                         </div>
+                        
+                        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; margin-top: 5px; text-align: left;">
+                            <label style="display:block; font-family:var(--font-heading); font-size:10px; color:var(--neon-blue); margin-bottom:6px; letter-spacing: 0.5px;">CLASSROOM SYNC CODE</label>
+                            <input type="text" id="class-code-input" value="lost-explorer-default" style="width:100%; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:rgba(15,23,42,0.6); color:white; font-family:var(--font-body); font-size:13px; outline:none; transition:border-color 0.3s; margin-bottom:8px;" placeholder="lost-explorer-default"/>
+                            <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+                                Copy and share this link with students:<br/>
+                                <a id="share-link-url" href="#" target="_blank" style="color:var(--neon-yellow); word-break:break-all; text-decoration:underline;"></a>
+                            </div>
+                        </div>
+
                         <button class="btn btn-danger" id="btn-global-reset">RESET CLASSROOM PROGRESS</button>
                     </div>
                 </div>
@@ -440,9 +450,6 @@
     </div>
 
     <script>
-        // Setup simple BroadcastChannel connection
-        const channel = new BroadcastChannel('lost-explorer-sync');
-        
         // Load initial unlocked level states
         let maxUnlockedLevel = parseInt(localStorage.getItem('unlockedLevel')) || 1;
         
@@ -451,6 +458,47 @@
         const errorMsg = document.getElementById('error-message');
         const adminPassInput = document.getElementById('admin-pass');
         const passKey = "admin123";
+
+        // Classroom Sync Code setup
+        let classCode = localStorage.getItem('classroomCode') || 'lost-explorer-default';
+        const classCodeInput = document.getElementById('class-code-input');
+        if (classCodeInput) {
+            classCodeInput.value = classCode;
+            classCodeInput.addEventListener('input', updateShareLink);
+        }
+        
+        updateShareLink();
+
+        function updateShareLink() {
+            if (!classCodeInput) return;
+            classCode = classCodeInput.value.trim() || 'lost-explorer-default';
+            localStorage.setItem('classroomCode', classCode);
+            
+            // Build student game URL with the class parameter
+            const gameUrl = window.location.href.replace('admin.html', 'index.html') + '?class=' + encodeURIComponent(classCode);
+            const shareLink = document.getElementById('share-link-url');
+            if (shareLink) {
+                shareLink.textContent = gameUrl;
+                shareLink.href = gameUrl;
+            }
+        }
+
+        // Helper to publish events to both local tab BroadcastChannel and cloud ntfy.sh relay
+        function publishMessage(msg) {
+            // 1. Local Broadcast
+            const localChan = new BroadcastChannel('lost-explorer-sync');
+            localChan.postMessage(msg);
+            
+            // 2. Cloud Relay (Internet-wide sync for separate machines)
+            fetch('https://ntfy.sh/' + encodeURIComponent(classCode), {
+                method: 'POST',
+                headers: {
+                    'Title': 'Explorer Admin Command',
+                    'Tags': 'gear'
+                },
+                body: JSON.stringify(msg)
+            }).catch(err => console.warn("Cloud sync relay unavailable: ", err));
+        }
 
         // Handle Login click
         document.getElementById('btn-login').addEventListener('click', attemptLogin);
@@ -483,8 +531,6 @@
         function showDashboard() {
             loginContainer.style.display = 'none';
             dashboardContainer.style.display = 'flex';
-            
-            // Sync current level status to UI
             updateDashboardUI();
         }
 
@@ -512,10 +558,8 @@
             let targetUnlocked = 1;
 
             if (levelNum <= currentUnlocked) {
-                // Clicking an unlocked level locks it and all levels above it
                 targetUnlocked = levelNum - 1;
             } else {
-                // Clicking a locked level unlocks it
                 targetUnlocked = levelNum;
             }
             
@@ -524,8 +568,8 @@
             localStorage.setItem('unlockedLevel', targetUnlocked.toString());
             updateDashboardUI();
 
-            // Broadcast level change to student tabs
-            channel.postMessage({
+            // Broadcast level change to students locally and globally
+            publishMessage({
                 type: 'unlock',
                 level: targetUnlocked
             });
@@ -539,8 +583,7 @@
             localStorage.setItem('teacherBroadcast', txt);
             localStorage.setItem('teacherBroadcastTime', Date.now().toString());
 
-            // Broadcast to open tabs
-            channel.postMessage({
+            publishMessage({
                 type: 'broadcast',
                 text: txt
             });
@@ -556,7 +599,7 @@
                 localStorage.removeItem('teacherBroadcast');
                 updateDashboardUI();
 
-                channel.postMessage({
+                publishMessage({
                     type: 'reset'
                 });
             }
