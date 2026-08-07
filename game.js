@@ -355,6 +355,9 @@ const slots = {
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('unlockedLevel')) {
+        localStorage.setItem('unlockedLevel', '1');
+    }
     setupDraggableItems();
     setupDropSlots();
     setupWireDrawingListeners();
@@ -437,8 +440,29 @@ function setupButtons() {
 
     btnNextLevel.addEventListener('click', () => {
         playSound('click');
+        const nextLvl = gameState.currentLevel + 1;
+        const unlockedLvl = parseInt(localStorage.getItem('unlockedLevel')) || 1;
+        
         levelCompleteModal.classList.add('hidden-element');
-        loadLevel(gameState.currentLevel + 1);
+        
+        if (nextLvl <= unlockedLvl) {
+            loadLevel(nextLvl);
+        } else {
+            // Unlocked level is lower than the next level. Display teacher lock screen!
+            const lockScreen = document.getElementById('teacher-lock-screen');
+            if (lockScreen) {
+                // Check if there was a broadcast message previously saved
+                const lastBroadcast = localStorage.getItem('teacherBroadcast');
+                const lockMsg = document.getElementById('teacher-broadcast-message');
+                if (lockMsg && lastBroadcast) {
+                    lockMsg.textContent = `Teacher: "${lastBroadcast}"`;
+                    lockMsg.style.display = 'block';
+                } else if (lockMsg) {
+                    lockMsg.style.display = 'none';
+                }
+                lockScreen.classList.remove('hidden-element');
+            }
+        }
     });
 
     btnRestartGame.addEventListener('click', () => {
@@ -1768,4 +1792,78 @@ function triggerRescueAnimation() {
             finalModal.classList.remove('hidden-element');
         }
     }, 13500);
+}
+
+// --- TEACHER CONTROL SYNCHRONIZATION ---
+const adminChannel = new BroadcastChannel('lost-explorer-sync');
+
+adminChannel.onmessage = (event) => {
+    const msg = event.data;
+    if (msg.type === 'unlock') {
+        localStorage.setItem('unlockedLevel', msg.level);
+        evaluateLevelUnlock(msg.level);
+    } else if (msg.type === 'broadcast') {
+        showTeacherBroadcast(msg.text);
+    } else if (msg.type === 'reset') {
+        localStorage.setItem('unlockedLevel', '1');
+        localStorage.removeItem('teacherBroadcast');
+        location.reload();
+    }
+};
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'unlockedLevel') {
+        evaluateLevelUnlock(parseInt(e.newValue) || 1);
+    }
+    if (e.key === 'teacherBroadcast') {
+        showTeacherBroadcast(e.newValue);
+    }
+});
+
+function evaluateLevelUnlock(unlockedLvl) {
+    const currentLvl = gameState.currentLevel;
+    const lockScreen = document.getElementById('teacher-lock-screen');
+    
+    if (lockScreen && !lockScreen.classList.contains('hidden-element')) {
+        const nextLvl = currentLvl + 1;
+        if (unlockedLvl >= nextLvl) {
+            lockScreen.classList.add('hidden-element');
+            
+            // Re-hide level complete modal in case it was left open
+            levelCompleteModal.classList.add('hidden-element');
+            
+            // Proceed to the level!
+            loadLevel(nextLvl);
+        }
+    }
+}
+
+function showTeacherBroadcast(text) {
+    const toast = document.getElementById('broadcast-toast');
+    const toastText = document.getElementById('broadcast-toast-text');
+    const lockMsg = document.getElementById('teacher-broadcast-message');
+    
+    if (!text) return;
+    
+    // Play alert sound if not already playing a sequence
+    if (!gameState.gameEnded) {
+        playSound('success');
+    }
+    
+    // Show toast overlay
+    if (toast && toastText) {
+        toastText.textContent = text;
+        toast.classList.remove('hidden-element');
+        
+        // Auto-hide toast after 8 seconds
+        setTimeout(() => {
+            toast.classList.add('hidden-element');
+        }, 8000);
+    }
+    
+    // Also update lock screen message block if it is visible
+    if (lockMsg) {
+        lockMsg.textContent = `Teacher: "${text}"`;
+        lockMsg.style.display = 'block';
+    }
 }
