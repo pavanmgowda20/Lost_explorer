@@ -1176,33 +1176,33 @@ function triggerSuccess(title, explanation) {
     
     if (gameState.currentLevel === 1) {
         svgHtml = `
-            <svg viewBox="0 0 120 60" width="120" height="60">
-                <line x1="15" y1="22" x2="15" y2="38" stroke="var(--neon-red)" stroke-width="3"/>
-                <line x1="23" y1="26" x2="23" y2="34" stroke="var(--neon-blue)" stroke-width="1.5"/>
-                <path d="M15,30 L5,30 L5,10 L115,10 L115,30" fill="none" stroke="rgba(56, 189, 248, 0.5)" stroke-width="2.5"/>
-                <path d="M23,30 L115,30" fill="none" stroke="rgba(56, 189, 248, 0.5)" stroke-width="2.5"/>
-                <circle cx="115" cy="30" r="8" fill="rgba(251, 191, 36, 0.2)" stroke="var(--neon-yellow)" stroke-width="2"/>
-                <path d="M110,25 L120,35 M120,25 L110,35" stroke="var(--neon-yellow)" stroke-width="1.5"/>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+            <svg viewBox="0 0 120 60" width="100%" height="100%">
+                <line x1="15" y1="20" x2="15" y2="40" stroke="var(--neon-red)" stroke-width="4"/>
+                <line x1="23" y1="24" x2="23" y2="36" stroke="var(--neon-blue)" stroke-width="2"/>
+                <path d="M15,30 L5,30 L5,10 L115,10 L115,30" fill="none" stroke="rgba(56, 189, 248, 0.5)" stroke-width="3.5"/>
+                <path d="M23,30 L115,30" fill="none" stroke="rgba(56, 189, 248, 0.5)" stroke-width="3.5"/>
+                <circle cx="115" cy="30" r="10" fill="rgba(251, 191, 36, 0.2)" stroke="var(--neon-yellow)" stroke-width="3"/>
+                <path d="M109,24 L121,36 M121,24 L109,36" stroke="var(--neon-yellow)" stroke-width="2"/>
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.0s" repeatCount="indefinite" path="M15,30 L5,30 L5,10 L115,10 L115,30 M115,30 L23,30"/>
                 </circle>
             </svg>
         `;
     } else if (gameState.currentLevel === 2) {
         svgHtml = `
-            <svg viewBox="0 0 120 60" width="120" height="60">
-                <path d="M5,30 L25,30 L33,15 L41,45 L49,15 L57,45 L65,15 L73,30 L115,30" fill="none" stroke="var(--neon-blue)" stroke-width="3"/>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+            <svg viewBox="0 0 120 60" width="100%" height="100%">
+                <path d="M5,30 L25,30 L33,15 L41,45 L49,15 L57,45 L65,15 L73,30 L115,30" fill="none" stroke="var(--neon-blue)" stroke-width="4"/>
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.6s" repeatCount="indefinite" calcMode="linear"
                         keyPoints="0;0.22;1" keyTimes="0;0.14;1"
                         path="M5,30 L25,30 L33,15 L41,45 L49,15 L57,45 L65,15 L73,30 L115,30"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0.6">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0.6">
                     <animateMotion dur="2.6s" repeatCount="indefinite" begin="-0.9s" calcMode="linear"
                         keyPoints="0;0.22;1" keyTimes="0;0.14;1"
                         path="M5,30 L25,30 L33,15 L41,45 L49,15 L57,45 L65,15 L73,30 L115,30"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0.6">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0.6">
                     <animateMotion dur="2.6s" repeatCount="indefinite" begin="-1.8s" calcMode="linear"
                         keyPoints="0;0.22;1" keyTimes="0;0.14;1"
                         path="M5,30 L25,30 L33,15 L41,45 L49,15 L57,45 L65,15 L73,30 L115,30"/>
@@ -1211,31 +1211,31 @@ function triggerSuccess(title, explanation) {
         `;
     } else if (gameState.currentLevel === 3) {
         svgHtml = `
-            <svg viewBox="0 0 120 60" width="120" height="60">
-                <path d="M5,30 L50,30" fill="none" stroke="var(--neon-blue)" stroke-width="3"/>
-                <path d="M70,30 L115,30" fill="none" stroke="var(--neon-blue)" stroke-width="3"/>
-                <path d="M50,10 L50,50" fill="none" stroke="var(--neon-orange)" stroke-width="3"/>
-                <path d="M70,10 L70,50" fill="none" stroke="var(--neon-orange)" stroke-width="3"/>
-                <rect x="53" width="14" y="50" height="0" fill="var(--neon-blue)" opacity="0.55">
+            <svg viewBox="0 0 120 60" width="100%" height="100%">
+                <path d="M5,30 L50,30" fill="none" stroke="var(--neon-blue)" stroke-width="4"/>
+                <path d="M70,30 L115,30" fill="none" stroke="var(--neon-blue)" stroke-width="4"/>
+                <path d="M50,10 L50,50" fill="none" stroke="var(--neon-orange)" stroke-width="4"/>
+                <path d="M70,10 L70,50" fill="none" stroke="var(--neon-orange)" stroke-width="4"/>
+                <rect x="52" width="16" y="50" height="0" fill="var(--neon-blue)" opacity="0.55">
                     <animate attributeName="height" values="0;40;40;0" keyTimes="0;0.8;0.92;1" dur="2.8s" repeatCount="indefinite"/>
                     <animate attributeName="y" values="50;10;10;50" keyTimes="0;0.8;0.92;1" dur="2.8s" repeatCount="indefinite"/>
                 </rect>
-                <circle cx="60" cy="30" r="26" fill="var(--neon-yellow)" opacity="0">
+                <circle cx="60" cy="30" r="28" fill="var(--neon-yellow)" opacity="0">
                     <animate attributeName="opacity" values="0;0;0.9;0" keyTimes="0;0.8;0.88;1" dur="2.8s" repeatCount="indefinite"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.8s" repeatCount="indefinite" path="M5,30 L48,30"/>
                     <animate attributeName="opacity" values="1;1;0" keyTimes="0;0.75;0.8" dur="2.8s" repeatCount="indefinite"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.8s" repeatCount="indefinite" begin="-1.4s" path="M5,30 L48,30"/>
                     <animate attributeName="opacity" values="1;1;0" keyTimes="0;0.75;0.8" dur="2.8s" repeatCount="indefinite"/>
                 </circle>
-                <circle class="electron" r="3.4" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0">
                     <animateMotion dur="2.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.8;0.9;1" path="M72,30 L115,30"/>
                     <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.79;0.82;0.95;1" dur="2.8s" repeatCount="indefinite"/>
                 </circle>
-                <circle class="electron" r="3.4" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0">
                     <animateMotion dur="2.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.82;0.92;1" path="M72,30 L115,30"/>
                     <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.81;0.84;0.97;1" dur="2.8s" repeatCount="indefinite"/>
                 </circle>
@@ -1243,20 +1243,20 @@ function triggerSuccess(title, explanation) {
         `;
     } else if (gameState.currentLevel === 4) {
         svgHtml = `
-            <svg viewBox="0 0 120 60" width="120" height="60">
-                <path d="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30" fill="none" stroke="var(--neon-purple)" stroke-width="3"/>
-                <circle cx="50" cy="20" r="6" fill="none" stroke="var(--neon-blue)" stroke-width="1.5" opacity="0">
+            <svg viewBox="0 0 120 60" width="100%" height="100%">
+                <path d="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30" fill="none" stroke="var(--neon-purple)" stroke-width="4.5"/>
+                <circle cx="50" cy="20" r="8" fill="none" stroke="var(--neon-blue)" stroke-width="2" opacity="0">
                     <animate attributeName="r" values="4;22" dur="2.4s" repeatCount="indefinite"/>
                     <animate attributeName="opacity" values="0.6;0" dur="2.4s" repeatCount="indefinite"/>
                 </circle>
-                <circle cx="50" cy="20" r="6" fill="none" stroke="var(--neon-blue)" stroke-width="1.5" opacity="0">
+                <circle cx="50" cy="20" r="8" fill="none" stroke="var(--neon-blue)" stroke-width="2" opacity="0">
                     <animate attributeName="r" values="4;22" dur="2.4s" repeatCount="indefinite" begin="-1.2s"/>
                     <animate attributeName="opacity" values="0.6;0" dur="2.4s" repeatCount="indefinite" begin="-1.2s"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.4s" repeatCount="indefinite" path="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30"/>
                 </circle>
-                <circle class="electron" r="3" cx="0" cy="0" fill="var(--neon-yellow)">
+                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
                     <animateMotion dur="2.4s" repeatCount="indefinite" begin="-1.2s" path="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30"/>
                 </circle>
             </svg>
