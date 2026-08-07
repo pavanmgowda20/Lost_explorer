@@ -541,6 +541,19 @@ function loadLevel(lvl) {
 
         if (lvl === 5) {
             gameState.morsePressCount = 0;
+            
+            // Pre-draw pre-wired connections scrambled by the curse, pre-inserting the Cursed Stone in Slot 1
+            setTimeout(() => {
+                dropComponentInSlot('slot-1', 'stone');
+                
+                gameState.wires = [
+                    { from: { compId: 'battery', term: 'pos' }, to: { compId: 'slot-1', term: 'a' } },
+                    { from: { compId: 'slot-1', term: 'b' }, to: { compId: 'lantern', term: 'a' } },
+                    { from: { compId: 'lantern', term: 'b' }, to: { compId: 'battery', term: 'neg' } }
+                ];
+                redrawWires();
+                checkCircuit();
+            }, 100);
         }
 
         // Render slots depending on level requirements
@@ -1632,9 +1645,9 @@ function triggerTreasureReveal() {
     }
     
     document.getElementById('level-explanation-text').innerHTML = `
-        <p><strong>Amazing! You found the ancient treasure!</strong> The chest is full of golden relics and ancient scrolls of electronics.</p>
-        <p>But wait... Night has fully fallen. The forest is Pitch Black. You have no map coordinates to get back home, and the forest is far too vast to navigate on foot.</p>
-        <p style="color: var(--neon-red); font-weight: bold; margin-top: 10px;">🎒 Objective: Wire a Morse code signal circuit using the Battery, Morse Button, and powerful LED Torch in your bag to call for helicopter rescue!</p>
+        <p><strong>You found the ancient treasure!</strong> But as you touch the chest, a glowing ancient CURSE is unleashed!</p>
+        <p>A shockwave of static electricity scrambles your equipment drawer. The emergency SOS circuit has been completely messed up—a non-conductive cursed stone has fused right into the control slot, breaking the loop!</p>
+        <p style="color: var(--neon-red); font-weight: bold; margin-top: 10px;">🎒 Objective: Clear the cursed stone from the slot, replace it with the Morse Button, and send the signal!</p>
     `;
 
     // Change button text
