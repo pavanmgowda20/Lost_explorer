@@ -16,7 +16,9 @@ let gameState = {
     tempWireEl: null,
     timerInterval: null,
     levelPassed: false,
-    gameEnded: false
+    gameEnded: false,
+    isButtonPressed: false,
+    morsePressCount: 0
 };
 
 // --- LEVEL CONFIGURATION ---
@@ -44,6 +46,12 @@ const LEVELS = {
         objective: "Use arrow keys or screen D-pad to navigate the forest, find the cave, and open the treasure chest!",
         allowedComponents: [],
         slotsActive: 0
+    },
+    5: {
+        title: "Build the SOS Beacon",
+        objective: "Connect the Morse Button and LED Torch in series with the Battery. Click the button 4 times to send an SOS signal!",
+        allowedComponents: ['switch', 'resistor', 'stone'],
+        slotsActive: 1
     }
 };
 
@@ -254,6 +262,43 @@ function playSound(type) {
                 osc.stop(now + 0.8);
                 break;
             }
+            case 'morse_beep': {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                break;
+            }
+            case 'helicopter': {
+                const bufferSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(70, now);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.05, now + 0.08);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.16);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start(now);
+                noise.stop(now + 0.3);
+                break;
+            }
         }
     } catch (e) {
         console.error("Audio Synthesis error: ", e);
@@ -440,6 +485,25 @@ function loadLevel(lvl) {
         clearInterval(gameState.timerInterval); // Stop timer for final hunt!
         startTreasureHunt();
     } else {
+        document.getElementById('board-container').classList.remove('hidden-element');
+        document.getElementById('treasure-maze-overlay').classList.add('hidden-element');
+        
+        // Restore Next Level Button text to default
+        const nextBtn = document.getElementById('btn-next-level');
+        if (nextBtn) {
+            nextBtn.innerHTML = `Proceed to Level <span id="next-level-num">${lvl + 1}</span>`;
+        }
+        
+        // Dynamic label renaming for LED Torch in Level 5
+        const labelEl = document.getElementById('lantern-label');
+        if (labelEl) {
+            labelEl.textContent = (lvl === 5) ? 'LED TORCH' : 'ANCIENT LANTERN';
+        }
+
+        if (lvl === 5) {
+            gameState.morsePressCount = 0;
+        }
+
         // Render slots depending on level requirements
         const slot1El = document.getElementById('slot-1');
         const slot2El = document.getElementById('slot-2');
@@ -557,20 +621,16 @@ function dropComponentInSlot(slotId, type) {
                 </div>
             </div>
         `;
-    } else if (type === 'inductor') {
+    } else if (type === 'switch') {
         innerContent = `
-            <div class="component" data-component-type="inductor" id="comp-${slotId}">
-                <div class="component-icon">
-                    <svg viewBox="0 0 100 40" width="80" height="32">
-                        <line x1="10" y1="20" x2="25" y2="20" stroke="#334155" stroke-width="3"/>
-                        <path d="M25,20 Q31,5 37,20 Q43,5 49,20 Q55,5 61,20 Q67,5 73,20" fill="none" stroke="var(--neon-purple)" stroke-width="3"/>
-                        <line x1="73" y1="20" x2="90" y2="20" stroke="#334155" stroke-width="3"/>
-                    </svg>
+            <div class="component" data-component-type="switch" id="comp-${slotId}">
+                <div class="component-icon" style="height: 32px; display:flex; justify-content:center; align-items:center;">
+                    <button class="morse-push-btn" id="morse-btn-${slotId}" style="width: 32px; height: 32px; border-radius: 50%; background: #ef4444; border: 3px solid #7f1d1d; cursor: pointer; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); outline: none; transition: all 0.05s;"></button>
                 </div>
                 <div class="component-label">${readableName}</div>
                 <div class="terminals-row">
-                    <div class="terminal-node" id="term-${slotId}-a" data-comp-id="${slotId}" data-terminal="a" title="Inductor Term A"></div>
-                    <div class="terminal-node" id="term-${slotId}-b" data-comp-id="${slotId}" data-terminal="b" title="Inductor Term B"></div>
+                    <div class="terminal-node" id="term-${slotId}-a" data-comp-id="${slotId}" data-terminal="a" title="Morse Button Term A"></div>
+                    <div class="terminal-node" id="term-${slotId}-b" data-comp-id="${slotId}" data-terminal="b" title="Morse Button Term B"></div>
                 </div>
             </div>
         `;
@@ -597,6 +657,30 @@ function dropComponentInSlot(slotId, type) {
     }
 
     slotEl.innerHTML = innerContent;
+    
+    if (type === 'switch') {
+        const btn = document.getElementById(`morse-btn-${slotId}`);
+        if (btn) {
+            const pressButton = (e) => {
+                e.preventDefault();
+                gameState.isButtonPressed = true;
+                checkCircuit();
+                if (gameState.isCircuitActive) {
+                    triggerMorsePress();
+                }
+            };
+            const releaseButton = (e) => {
+                e.preventDefault();
+                gameState.isButtonPressed = false;
+                checkCircuit();
+            };
+            btn.addEventListener('mousedown', pressButton);
+            btn.addEventListener('touchstart', pressButton, { passive: false });
+            btn.addEventListener('mouseup', releaseButton);
+            btn.addEventListener('touchend', releaseButton);
+            btn.addEventListener('mouseleave', releaseButton);
+        }
+    }
     
     // Bind click/drag wiring listeners to the new terminal nodes
     bindTerminalEvents(document.getElementById(`term-${slotId}-a`));
@@ -888,14 +972,17 @@ function checkCircuit() {
         // Conductors allow internal paths
         if (t === 'resistor' || t === 'capacitor' || t === 'inductor') {
             registerEdge('slot-1-a', 'slot-1-b');
+        } else if (t === 'switch' && gameState.isButtonPressed) {
+            registerEdge('slot-1-a', 'slot-1-b');
         }
-        // Insulators (stone, leaf, stick, etc.) don't add internal edges
     }
 
     // Slot 2 internal connections
     if (gameState.slots['slot-2']) {
         const t = gameState.slots['slot-2'];
         if (t === 'resistor' || t === 'capacitor' || t === 'inductor') {
+            registerEdge('slot-2-a', 'slot-2-b');
+        } else if (t === 'switch' && gameState.isButtonPressed) {
             registerEdge('slot-2-a', 'slot-2-b');
         }
     }
@@ -1009,6 +1096,20 @@ function evaluatePathComponents(path) {
             setLanternState('LIT');
             redrawWires();
             triggerAlert("LIGHTED BUT NOT SOLVED", "The lantern is glowing, but we need to demonstrate how a CAPACITOR operates. Try incorporating the capacitor in the circuit loop.", "💡");
+        }
+    }
+    else if (gameState.currentLevel === 5) {
+        // Level 5: SOS Beacon
+        const hasSwitch = (gameState.slots['slot-1'] === 'switch' && (path.includes('slot-1-a') || path.includes('slot-1-b'))) ||
+                          (gameState.slots['slot-2'] === 'switch' && (path.includes('slot-2-a') || path.includes('slot-2-b')));
+        
+        if (hasSwitch) {
+            setLanternState('LIT');
+            redrawWires();
+        } else {
+            setLanternState('LIT');
+            redrawWires();
+            triggerAlert("SOS BEACON WARNING", "The LED Torch is glowing, but you didn't include the MORSE BUTTON to control the signal. Wire the button in series!", "⚠️");
         }
     }
 }
@@ -1475,11 +1576,157 @@ function moveExplorer(dx, dy) {
 function triggerTreasureReveal() {
     mazeState.chestFound = true;
     window.removeEventListener('keydown', handleMazeKeys);
-    playSound('victory');
+    playSound('success');
     
-    document.getElementById('final-score-val').textContent = gameState.score;
+    // Load next level button index
+    document.getElementById('next-level-num').textContent = 5;
     
+    // Update level complete modal fields for the transition narrative
+    document.getElementById('success-level-name').textContent = "Treasure Found... But Still Lost!";
+    
+    // Inject animated Compass icon
+    const animContainer = document.getElementById('level-complete-animation-container');
+    if (animContainer) {
+        animContainer.innerHTML = `
+            <div style="font-size: 56px; animation: heartbeat 1.5s infinite alternate; text-align:center;">🧭</div>
+        `;
+    }
+    
+    document.getElementById('level-explanation-text').innerHTML = `
+        <p><strong>Amazing! You found the ancient treasure!</strong> The chest is full of golden relics and ancient scrolls of electronics.</p>
+        <p>But wait... Night has fully fallen. The forest is Pitch Black. You have no map coordinates to get back home, and the forest is far too vast to navigate on foot.</p>
+        <p style="color: var(--neon-red); font-weight: bold; margin-top: 10px;">🎒 Objective: Wire a Morse code signal circuit using the Battery, Morse Button, and powerful LED Torch in your bag to call for helicopter rescue!</p>
+    `;
+
+    // Change button text
+    const nextBtn = document.getElementById('btn-next-level');
+    if (nextBtn) {
+        nextBtn.innerHTML = '⚡ Build SOS Circuit';
+    }
+
     setTimeout(() => {
-        treasureModal.classList.remove('hidden-element');
-    }, 800);
+        levelCompleteModal.classList.remove('hidden-element');
+    }, 1000);
+}
+
+function triggerMorsePress() {
+    if (gameState.currentLevel !== 5) return;
+    
+    // Play telegraph beep sound
+    playSound('morse_beep');
+    
+    gameState.morsePressCount++;
+    
+    // Display status alert warning / HUD indicator
+    triggerAlert("SIGNALING SOS", `Distress signal sent: ${gameState.morsePressCount} / 4`, "📡");
+    
+    if (gameState.morsePressCount === 4) {
+        // Freeze inputs & trigger helicopter rescue
+        triggerRescueAnimation();
+    }
+}
+
+function triggerRescueAnimation() {
+    gameState.gameEnded = true; // stops interactions
+    
+    const rescueOverlay = document.getElementById('rescue-animation-overlay');
+    const helicopter = document.getElementById('helicopter');
+    const ladder = document.getElementById('rope-ladder');
+    const explorer = document.getElementById('explorer-rescue');
+    const bannerText = document.getElementById('rescue-banner-text');
+    
+    if (!rescueOverlay) return;
+    
+    // Show overlay
+    rescueOverlay.classList.remove('hidden-element');
+    
+    // Rhythmic helicopter audio loop
+    playSound('helicopter');
+    const heliInterval = setInterval(() => {
+        if (!gameState.gameEnded) {
+            clearInterval(heliInterval);
+            return;
+        }
+        playSound('helicopter');
+    }, 200);
+
+    // 1. Move Helicopter into center view (over 3.5s)
+    setTimeout(() => {
+        if (helicopter) {
+            helicopter.style.right = '320px'; // Hover center
+        }
+        if (bannerText) {
+            bannerText.textContent = "Helicopter approaching... Searching forest...";
+        }
+    }, 200);
+
+    // 2. Helicopter hovers, drops rope ladder (at 3.8s)
+    setTimeout(() => {
+        if (ladder) {
+            ladder.style.opacity = '1';
+        }
+        if (bannerText) {
+            bannerText.textContent = "SOS light spotted! Rope ladder deployed.";
+        }
+    }, 3800);
+
+    // 3. Explorer walks under helicopter ladder (at 4.8s)
+    setTimeout(() => {
+        if (explorer) {
+            explorer.style.left = '480px'; // under ladder (aligns with x1=480, x2=480 of ladder!)
+        }
+        if (bannerText) {
+            bannerText.textContent = "Explorer moving to rescue ladder...";
+        }
+    }, 4800);
+
+    // 4. Explorer climbs rope ladder (at 7.0s)
+    setTimeout(() => {
+        if (explorer) {
+            explorer.style.bottom = '265px'; // climbs up to cockpit y-skids
+        }
+        if (bannerText) {
+            bannerText.textContent = "Climbing up to safety!";
+        }
+    }, 7000);
+
+    // 5. Explorer enters cockpit, pull ladder back (at 9.2s)
+    setTimeout(() => {
+        if (explorer) {
+            explorer.style.opacity = '0';
+        }
+        if (ladder) {
+            ladder.style.opacity = '0';
+        }
+        if (bannerText) {
+            bannerText.textContent = "Explorer secure inside! Pulling up ladder...";
+        }
+    }, 9200);
+
+    // 6. Helicopter flies away to safety (at 10.5s)
+    setTimeout(() => {
+        if (helicopter) {
+            helicopter.style.right = '900px'; // flies off screen left
+        }
+        if (bannerText) {
+            bannerText.textContent = "Flying home! Mission accomplished!";
+        }
+    }, 10500);
+
+    // 7. Complete rescue, stop audio, show victory chest modal (at 13.5s)
+    setTimeout(() => {
+        clearInterval(heliInterval);
+        
+        // Hide rescue overlay
+        rescueOverlay.classList.add('hidden-element');
+        
+        // Display final victory modal
+        playSound('victory');
+        document.getElementById('final-score-val').textContent = gameState.score;
+        
+        const finalModal = document.getElementById('treasure-modal');
+        if (finalModal) {
+            finalModal.classList.remove('hidden-element');
+        }
+    }, 13500);
 }
