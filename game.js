@@ -40,12 +40,6 @@ const LEVELS = {
         slotsActive: 1
     },
     4: {
-        title: "Inductor Slow Rise",
-        objective: "Test the inductor. Connect the battery through the inductor to the bulb.",
-        allowedComponents: ['resistor', 'inductor', 'bottle', 'compass'],
-        slotsActive: 1
-    },
-    5: {
         title: "The Treasure Hunt",
         objective: "Use arrow keys or screen D-pad to navigate the forest, find the cave, and open the treasure chest!",
         allowedComponents: [],
@@ -442,7 +436,7 @@ function loadLevel(lvl) {
     });
 
     // Handle board overlays
-    if (lvl === 5) {
+    if (lvl === 4) {
         clearInterval(gameState.timerInterval); // Stop timer for final hunt!
         startTreasureHunt();
     } else {
@@ -973,20 +967,17 @@ function evaluatePathComponents(path) {
     // Identify active slots traversed
     let hasResistor = false;
     let hasCapacitor = false;
-    let hasInductor = false;
 
     if (nodes.has('slot-1-a') && nodes.has('slot-1-b')) {
         const t = gameState.slots['slot-1'];
         if (t === 'resistor') hasResistor = true;
         if (t === 'capacitor') hasCapacitor = true;
-        if (t === 'inductor') hasInductor = true;
     }
 
     if (nodes.has('slot-2-a') && nodes.has('slot-2-b')) {
         const t = gameState.slots['slot-2'];
         if (t === 'resistor') hasResistor = true;
         if (t === 'capacitor') hasCapacitor = true;
-        if (t === 'inductor') hasInductor = true;
     }
 
     // Evaluate based on level
@@ -1018,17 +1009,6 @@ function evaluatePathComponents(path) {
             setLanternState('LIT');
             redrawWires();
             triggerAlert("LIGHTED BUT NOT SOLVED", "The lantern is glowing, but we need to demonstrate how a CAPACITOR operates. Try incorporating the capacitor in the circuit loop.", "💡");
-        }
-    } 
-    else if (gameState.currentLevel === 4) {
-        // Level 4: Inductor
-        if (hasInductor) {
-            setLanternState('SLOW_GLOW');
-            redrawWires();
-        } else {
-            setLanternState('LIT');
-            redrawWires();
-            triggerAlert("LIGHTED BUT NOT SOLVED", "The lantern is glowing, but we need to demonstrate how an INDUCTOR operates. Try incorporating the inductor in the circuit loop.", "💡");
         }
     }
 }
@@ -1238,26 +1218,6 @@ function triggerSuccess(title, explanation) {
                 <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)" opacity="0">
                     <animateMotion dur="2.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.82;0.92;1" path="M72,30 L115,30"/>
                     <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.81;0.84;0.97;1" dur="2.8s" repeatCount="indefinite"/>
-                </circle>
-            </svg>
-        `;
-    } else if (gameState.currentLevel === 4) {
-        svgHtml = `
-            <svg viewBox="0 0 120 60" width="100%" height="100%">
-                <path d="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30" fill="none" stroke="var(--neon-purple)" stroke-width="4.5"/>
-                <circle cx="50" cy="20" r="8" fill="none" stroke="var(--neon-blue)" stroke-width="2" opacity="0">
-                    <animate attributeName="r" values="4;22" dur="2.4s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" values="0.6;0" dur="2.4s" repeatCount="indefinite"/>
-                </circle>
-                <circle cx="50" cy="20" r="8" fill="none" stroke="var(--neon-blue)" stroke-width="2" opacity="0">
-                    <animate attributeName="r" values="4;22" dur="2.4s" repeatCount="indefinite" begin="-1.2s"/>
-                    <animate attributeName="opacity" values="0.6;0" dur="2.4s" repeatCount="indefinite" begin="-1.2s"/>
-                </circle>
-                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
-                    <animateMotion dur="2.4s" repeatCount="indefinite" path="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30"/>
-                </circle>
-                <circle class="electron" r="4.2" cx="0" cy="0" fill="var(--neon-yellow)">
-                    <animateMotion dur="2.4s" repeatCount="indefinite" begin="-1.2s" path="M5,30 Q20,10 35,30 Q50,10 65,30 Q80,10 95,30 L115,30"/>
                 </circle>
             </svg>
         `;
