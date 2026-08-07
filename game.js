@@ -1621,8 +1621,22 @@ function triggerMorsePress() {
     triggerAlert("SIGNALING SOS", `Distress signal sent: ${gameState.morsePressCount} / 4`, "📡");
     
     if (gameState.morsePressCount === 4) {
-        // Freeze inputs & trigger helicopter rescue
-        triggerRescueAnimation();
+        // Freeze inputs early to prevent double triggers
+        gameState.gameEnded = true;
+        
+        // Start full-screen flashing animation (4 blinks)
+        const flash = document.getElementById('screen-flash');
+        if (flash) {
+            flash.classList.add('screen-flash-active');
+        }
+        
+        // Delay the helicopter arrival until flash ends (1.5 seconds)
+        setTimeout(() => {
+            if (flash) {
+                flash.classList.remove('screen-flash-active');
+            }
+            triggerRescueAnimation();
+        }, 1500);
     }
 }
 

@@ -1481,4 +1481,25 @@ body {
     transform: scale(0.95);
 }
 
+/* Full Screen Blink/Flash Overlay */
+.screen-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99999;
+}
+.screen-flash-active {
+    animation: flash-blink 0.35s ease-in-out 4;
+}
+@keyframes flash-blink {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.95; }
+}
+
+
 
