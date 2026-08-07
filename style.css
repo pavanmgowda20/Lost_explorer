@@ -1494,7 +1494,7 @@ body {
     z-index: 99999;
 }
 .screen-flash-active {
-    animation: flash-blink 0.35s ease-in-out 4;
+    animation: flash-blink 0.6s ease-in-out 4;
 }
 @keyframes flash-blink {
     0%, 100% { opacity: 0; }

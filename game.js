@@ -304,14 +304,14 @@ function playSound(type) {
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(600, now);
-                osc.frequency.linearRampToValueAtTime(900, now + 0.15);
-                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+                osc.frequency.linearRampToValueAtTime(900, now + 0.25);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.5);
                 gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.3);
+                osc.stop(now + 0.5);
                 break;
             }
         }
@@ -1639,13 +1639,13 @@ function triggerMorsePress() {
         // Freeze inputs early to prevent double triggers
         gameState.gameEnded = true;
         
-        // Delay the SOS blink and siren sequence by 500ms to let the player release the button
+        // Delay the SOS blink and siren sequence by 1200ms to let the player release the button and create suspense
         setTimeout(() => {
-            // Play 4 alarm sirens corresponding to the 4 flashes
+            // Play 4 alarm sirens corresponding to the 4 flashes (spaced at 600ms matching the blink duration)
             for (let i = 0; i < 4; i++) {
                 setTimeout(() => {
                     playSound('siren');
-                }, i * 350);
+                }, i * 600);
             }
             
             // Start full-screen flashing animation (4 blinks)
@@ -1654,14 +1654,14 @@ function triggerMorsePress() {
                 flash.classList.add('screen-flash-active');
             }
             
-            // Delay the helicopter arrival until flash ends (1.5 seconds)
+            // Delay the helicopter arrival until flash ends (2.5 seconds)
             setTimeout(() => {
                 if (flash) {
                     flash.classList.remove('screen-flash-active');
                 }
                 triggerRescueAnimation();
-            }, 1500);
-        }, 500);
+            }, 2500);
+        }, 1200);
     }
 }
 
