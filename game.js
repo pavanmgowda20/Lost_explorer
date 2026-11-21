@@ -355,8 +355,10 @@ const slots = {
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('unlockedLevel')) {
-        localStorage.setItem('unlockedLevel', '1');
+    if (window.parent && window.parent !== window) {
+        document.body.classList.add('in-iframe');
+        const intro = document.getElementById('intro-modal');
+        if (intro) intro.classList.add('hidden-element');
     }
     setupDraggableItems();
     setupDropSlots();
@@ -440,29 +442,8 @@ function setupButtons() {
 
     btnNextLevel.addEventListener('click', () => {
         playSound('click');
-        const nextLvl = gameState.currentLevel + 1;
-        const unlockedLvl = parseInt(localStorage.getItem('unlockedLevel')) || 1;
-        
         levelCompleteModal.classList.add('hidden-element');
-        
-        if (nextLvl <= unlockedLvl) {
-            loadLevel(nextLvl);
-        } else {
-            // Unlocked level is lower than the next level. Display teacher lock screen!
-            const lockScreen = document.getElementById('teacher-lock-screen');
-            if (lockScreen) {
-                // Check if there was a broadcast message previously saved
-                const lastBroadcast = localStorage.getItem('teacherBroadcast');
-                const lockMsg = document.getElementById('teacher-broadcast-message');
-                if (lockMsg && lastBroadcast) {
-                    lockMsg.textContent = `Teacher: "${lastBroadcast}"`;
-                    lockMsg.style.display = 'block';
-                } else if (lockMsg) {
-                    lockMsg.style.display = 'none';
-                }
-                lockScreen.classList.remove('hidden-element');
-            }
-        }
+        loadLevel(gameState.currentLevel + 1);
     });
 
     btnRestartGame.addEventListener('click', () => {
@@ -1296,6 +1277,15 @@ function triggerSuccess(title, explanation) {
     addScore(50);
     playSound('success');
 
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            type: 'LEVEL_COMPLETE',
+            level: gameState.currentLevel,
+            title: title,
+            explanation: explanation
+        }, '*');
+    }
+
     // Load next level button index
     document.getElementById('next-level-num').textContent = gameState.currentLevel + 1;
     document.getElementById('level-explanation-text').innerHTML = `
@@ -1630,6 +1620,14 @@ function triggerTreasureReveal() {
     window.removeEventListener('keydown', handleMazeKeys);
     playSound('success');
     
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            type: 'LEVEL_COMPLETE',
+            level: 4,
+            title: "Treasure Found"
+        }, '*');
+    }
+    
     // Load next level button index
     document.getElementById('next-level-num').textContent = 5;
     
@@ -1804,114 +1802,14 @@ function triggerRescueAnimation() {
         if (finalModal) {
             finalModal.classList.remove('hidden-element');
         }
+
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'LEVEL_COMPLETE',
+                level: 5,
+                title: "Mission Complete"
+            }, '*');
+        }
     }, 13500);
 }
 
-// --- TEACHER CONTROL SYNCHRONIZATION ---
-// Parse classroom sync code from URL parameters (?class=XXX) or default to 'lost-explorer-default'
-const urlParams = new URLSearchParams(window.location.search);
-const classCode = urlParams.get('class') || 'lost-explorer-default';
-
-// 1. Local Same-Computer Communication
-const adminChannel = new BroadcastChannel('lost-explorer-sync');
-adminChannel.onmessage = (event) => {
-    handleIncomingCommand(event.data);
-};
-
-// 2. Internet-Wide Classroom Sync Relay (via ntfy.sh SSE stream)
-try {
-    const eventSourceUrl = `https://ntfy.sh/${encodeURIComponent(classCode)}/sse`;
-    const classroomRelay = new EventSource(eventSourceUrl);
-    
-    classroomRelay.onmessage = (event) => {
-        try {
-            const rawPayload = JSON.parse(event.data);
-            if (rawPayload && rawPayload.message) {
-                const command = JSON.parse(rawPayload.message);
-                handleIncomingCommand(command);
-            }
-        } catch (e) {
-            // Ignore non-JSON notifications
-        }
-    };
-    
-    classroomRelay.onerror = () => {
-        console.warn("Cloud sync connection temporarily interrupted. Retrying...");
-    };
-} catch (e) {
-    console.error("Failed to initialize Cloud Sync EventSource: ", e);
-}
-
-// 3. Storage Syncer for same-machine tabs
-window.addEventListener('storage', (e) => {
-    if (e.key === 'unlockedLevel') {
-        evaluateLevelUnlock(parseInt(e.newValue) || 1);
-    }
-    if (e.key === 'teacherBroadcast') {
-        showTeacherBroadcast(e.newValue);
-    }
-});
-
-// Centralized command dispatcher
-function handleIncomingCommand(msg) {
-    if (!msg || !msg.type) return;
-    
-    if (msg.type === 'unlock') {
-        localStorage.setItem('unlockedLevel', msg.level);
-        evaluateLevelUnlock(msg.level);
-    } else if (msg.type === 'broadcast') {
-        showTeacherBroadcast(msg.text);
-    } else if (msg.type === 'reset') {
-        localStorage.setItem('unlockedLevel', '1');
-        localStorage.removeItem('teacherBroadcast');
-        location.reload();
-    }
-}
-
-function evaluateLevelUnlock(unlockedLvl) {
-    const currentLvl = gameState.currentLevel;
-    const lockScreen = document.getElementById('teacher-lock-screen');
-    
-    if (lockScreen && !lockScreen.classList.contains('hidden-element')) {
-        const nextLvl = currentLvl + 1;
-        if (unlockedLvl >= nextLvl) {
-            lockScreen.classList.add('hidden-element');
-            
-            // Re-hide level complete modal in case it was left open
-            levelCompleteModal.classList.add('hidden-element');
-            
-            // Proceed to the level!
-            loadLevel(nextLvl);
-        }
-    }
-}
-
-function showTeacherBroadcast(text) {
-    const toast = document.getElementById('broadcast-toast');
-    const toastText = document.getElementById('broadcast-toast-text');
-    const lockMsg = document.getElementById('teacher-broadcast-message');
-    
-    if (!text) return;
-    
-    // Play alert sound if not already playing a sequence
-    if (!gameState.gameEnded) {
-        playSound('success');
-    }
-    
-    // Show toast overlay
-    if (toast && toastText) {
-        toastText.textContent = text;
-        toast.classList.remove('hidden-element');
-        
-        // Auto-hide toast after 8 seconds
-        setTimeout(() => {
-            toast.classList.add('hidden-element');
-        }, 8000);
-    }
-    
-    // Also update lock screen message block if it is visible
-    if (lockMsg) {
-        lockMsg.textContent = `Teacher: "${text}"`;
-        lockMsg.style.display = 'block';
-    }
-}

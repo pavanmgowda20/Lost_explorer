@@ -49,10 +49,6 @@
                         <span class="stat-label">TIME REMAINING</span>
                         <span class="stat-value" id="timer-val">05:00</span>
                     </div>
-                    <a href="admin.html" target="_blank" class="stat-box" id="admin-link-box" title="Teacher Dashboard" style="cursor: pointer; text-decoration: none; border-color: rgba(251, 191, 36, 0.25);">
-                        <span class="stat-label" style="color: var(--neon-yellow);">TEACHER</span>
-                        <span class="stat-value" style="font-size: 14px; color: var(--neon-yellow); margin-top: 2px;">🔑</span>
-                    </a>
                 </div>
             </header>
 
@@ -282,33 +278,6 @@
                 </div>
                 <button class="btn btn-primary" id="btn-next-level">Proceed to Level <span id="next-level-num">2</span></button>
             </div>
-        </div>
-
-        <!-- Teacher Lock Screen Modal -->
-        <div id="teacher-lock-screen" class="overlay-modal hidden-element" style="background: rgba(2, 6, 23, 0.95); z-index: 100000;">
-            <div class="modal-content glass-panel" style="text-align: center; max-width: 450px; padding: 40px; display: flex; flex-direction: column; gap: 20px; align-items: center; border-color: var(--neon-yellow);">
-                <div class="lock-icon" style="font-size: 50px; text-shadow: 0 0 15px var(--neon-yellow-glow); animation: pulse 1.5s infinite alternate;">🔒</div>
-                <h3 style="font-family: var(--font-heading); color: var(--neon-yellow); text-shadow: 0 0 5px var(--neon-yellow-glow); font-size: 20px;">APPROVAL REQUIRED</h3>
-                <p style="font-size: 15px; color: var(--text-light); line-height: 1.5;">Awesome job! You have solved this challenge successfully.</p>
-                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">Please wait for your teacher's signal or explanation before proceeding to the next level.</p>
-                
-                <!-- Spinner -->
-                <div style="width: 36px; height: 36px; border: 3px solid rgba(251, 191, 36, 0.15); border-top-color: var(--neon-yellow); border-radius: 50%; animation: spin 1s linear infinite; margin: 10px 0;"></div>
-                
-                <div id="teacher-broadcast-message" style="margin-top: 15px; width: 100%; padding: 15px; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); font-style: italic; color: var(--neon-blue); font-size: 13px; display: none; line-height: 1.4; box-shadow: 0 4px 15px rgba(56,189,248,0.15);">
-                    <!-- Live broadcast message will appear here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Live Broadcast Alert Notification -->
-        <div id="broadcast-toast" class="hidden-element" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100001; width: 90%; max-width: 550px; border: 1px solid var(--neon-blue); border-radius: 12px; background: rgba(15, 23, 42, 0.95); box-shadow: 0 4px 25px var(--neon-blue-glow); display: flex; align-items: center; gap: 15px; padding: 18px 24px; transition: all 0.3s ease;">
-            <span style="font-size: 26px;">📢</span>
-            <div style="flex-grow: 1; text-align: left;">
-                <h4 style="font-family: var(--font-heading); color: var(--neon-blue); font-size: 11px; margin-bottom: 4px; text-shadow: 0 0 5px var(--neon-blue-glow); letter-spacing: 1px;">TEACHER BROADCAST</h4>
-                <p id="broadcast-toast-text" style="color: var(--text-light); font-size: 14px; line-height: 1.4;"></p>
-            </div>
-            <button id="btn-close-toast" style="background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: all 0.3s;" onclick="document.getElementById('broadcast-toast').classList.add('hidden-element')">✕</button>
         </div>
 
         <!-- Helicopter Rescue Animation Overlay -->

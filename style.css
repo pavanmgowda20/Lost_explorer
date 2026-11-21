@@ -1181,6 +1181,31 @@ body {
     100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
 }
 
+/* Iframe layout overrides */
+body.in-iframe #game-header,
+body.in-iframe #intro-modal,
+body.in-iframe #level-complete-modal,
+body.in-iframe #treasure-modal,
+body.in-iframe #game-over-modal {
+    display: none !important;
+}
+
+body.in-iframe #game-container {
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+}
+
+body.in-iframe #main-arena {
+    padding: 10px 20px;
+    height: calc(100vh - 120px) !important;
+}
+
+body.in-iframe #objective-banner {
+    margin: 10px auto 0 auto;
+}
+
+
 /* Fix wire drawing mouse targeting */
 .dragging-wire {
     pointer-events: none !important;
